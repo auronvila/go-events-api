@@ -1,0 +1,15 @@
+[build]
+bin = "tmp/main" # This is where the compiled binary will be placed
+cmd = "go build -o tmp/main ." # Command to build your server application
+full_bin = "tmp/main" # Command to run your server application
+
+[watch]
+# Directories with code you want to watch for changes
+include_dir = ["."]
+exclude_dir = ["vendor", "tmp"]
+
+[log]
+level = "debug"
+
+[misc]
+clean_on_exit = true # Clean up the binary when air exits
