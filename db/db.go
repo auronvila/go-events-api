@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -12,7 +13,7 @@ func InitDb() {
 	DB, err = sql.Open("sqlite3", "api.db")
 
 	if err != nil {
-		panic("Could not initialize the database")
+		panic(fmt.Sprintf("Could not initialize the database: %v", err))
 	}
 
 	DB.SetMaxOpenConns(10)
@@ -22,19 +23,31 @@ func InitDb() {
 }
 
 func createTables() {
-	createEventsTable := `
-	CREATE TABLE IF NOT EXISTS events (
-	    id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL,
-		description TEXT NOT NULL,
-		location TEXT NOT NULL,
-		dateTime DATETIME NOT NULL,
-		userId INTEGER
-	)
+	createUsersTable := `
+CREATE TABLE IF NOT EXISTS users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	email TEXT NOT NULL UNIQUE,
+	password TEXT NOT NULL
+)
 `
-
-	_, err := DB.Exec(createEventsTable)
+	_, err := DB.Exec(createUsersTable)
 	if err != nil {
-		panic("err in creating a table")
+		panic(fmt.Sprintf("Error in creating the users table: %v", err))
+	}
+
+	createEventsTable := `
+CREATE TABLE IF NOT EXISTS events (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	name TEXT NOT NULL,
+	description TEXT NOT NULL,
+	location TEXT NOT NULL,
+	dateTime DATETIME NOT NULL,
+	userId INTEGER,
+	FOREIGN KEY(userId) REFERENCES users(id)
+)
+`
+	_, err = DB.Exec(createEventsTable)
+	if err != nil {
+		panic(fmt.Sprintf("Error in creating the events table: %v", err))
 	}
 }
