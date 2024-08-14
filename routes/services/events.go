@@ -3,7 +3,6 @@ package services
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-events-planning-backend/models"
-	"github.com/golang-events-planning-backend/utils"
 	"net/http"
 	"strconv"
 )
@@ -35,27 +34,15 @@ func GetEventById(context *gin.Context) {
 }
 
 func CreateEvent(context *gin.Context) {
-	token := context.Request.Header.Get("Authorization")
-
-	if token == "" {
-		context.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
-		return
-	}
-
-	err := utils.VerifyToken(token)
-	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"message": err.Error()})
-		return
-	}
-
 	var event models.Event
-	err = context.ShouldBindJSON(&event)
+	err := context.ShouldBindJSON(&event)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse the request data"})
 		return
 	}
 
-	event.UserId = 1
+	userId := context.GetInt64("userId")
+	event.UserId = userId
 	err = event.Save()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "could not save the event to the database"})
@@ -65,9 +52,21 @@ func CreateEvent(context *gin.Context) {
 }
 
 func UpdateEvent(context *gin.Context) {
+	userId := context.GetInt64("userId")
 	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "could not parse the eventId"})
+		return
+	}
+
+	event, err := models.GetEventById(eventId)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Error in getting the event"})
+		return
+	}
+
+	if event.UserId != userId {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "only the owner of the event can update the event"})
 		return
 	}
 
@@ -89,6 +88,7 @@ func UpdateEvent(context *gin.Context) {
 }
 
 func DeleteEvent(context *gin.Context) {
+	userId := context.GetInt64("userId")
 	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "could not parse the eventId"})
@@ -97,9 +97,14 @@ func DeleteEvent(context *gin.Context) {
 
 	event, err := models.GetEventById(eventId)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		context.JSON(http.StatusBadRequest, gin.H{"message": "event with the given id was not found"})
 		return
 	}
+	if event.UserId != userId {
+		context.JSON(http.StatusBadRequest, gin.H{"message": "only the owner of the event can delete the event"})
+		return
+	}
+
 	err = event.Delete()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "could not delete the event"})

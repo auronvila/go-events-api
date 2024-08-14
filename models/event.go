@@ -14,7 +14,7 @@ type Event struct {
 	Description string    `binding:"required"`
 	Location    string    `binding:"required"`
 	DateTime    time.Time `binding:"required"`
-	UserId      int
+	UserId      int64
 }
 
 func (receiver Event) Save() error {
@@ -109,5 +109,52 @@ DELETE FROM events WHERE id = ?
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (e Event) Register(userId int64) error {
+	query := `
+INSERT INTO registrations(event_id, user_id) VALUES (?,?)
+`
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(e.Id, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e Event) CancelRegistration(userId int64) error {
+	query := `
+DELETE FROM registrations WHERE event_id = ? AND user_id = ?
+`
+
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(e.Id, userId)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("no registration found for event_id %d and user_id %d", e.Id, userId)
+	}
+
 	return nil
 }
