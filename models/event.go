@@ -9,18 +9,18 @@ import (
 )
 
 type Event struct {
-	Id          int64
+	Id          string
 	Name        string    `binding:"required"`
 	Description string    `binding:"required"`
 	Location    string    `binding:"required"`
 	DateTime    time.Time `binding:"required"`
-	UserId      int64
+	UserId      string
 }
 
 func (receiver Event) Save() error {
 	query := `
-INSERT INTO events(name,description,location,dateTime,userId) 
-VALUES (? , ? , ? , ? , ?) 
+INSERT INTO events(id,name,description,location,dateTime,userId) 
+VALUES (?, ? , ? , ? , ? , ?) 
 `
 	statement, err := db.DB.Prepare(query)
 	if err != nil {
@@ -28,12 +28,11 @@ VALUES (? , ? , ? , ? , ?)
 	}
 	defer statement.Close()
 
-	result, err := statement.Exec(receiver.Name, receiver.Description, receiver.Location, receiver.DateTime, receiver.UserId)
+	_, err = statement.Exec(receiver.Id, receiver.Name, receiver.Description, receiver.Location, receiver.DateTime, receiver.UserId)
 	if err != nil {
 		return err
 	}
-	id, err := result.LastInsertId()
-	receiver.Id = id
+
 	return err
 }
 
@@ -59,7 +58,7 @@ func GetEvents() ([]Event, error) {
 	return events, nil
 }
 
-func GetEventById(eventId int64) (*Event, error) {
+func GetEventById(eventId string) (*Event, error) {
 	query := `
 	SELECT * FROM events WHERE id = ?
 	`
@@ -112,9 +111,9 @@ DELETE FROM events WHERE id = ?
 	return nil
 }
 
-func (e Event) Register(userId int64) error {
+func (e Event) Register(userId string, id string) error {
 	query := `
-INSERT INTO registrations(event_id, user_id) VALUES (?,?)
+INSERT INTO registrations(id,event_id, user_id) VALUES (?,?,?)
 `
 	stmt, err := db.DB.Prepare(query)
 	if err != nil {
@@ -123,7 +122,7 @@ INSERT INTO registrations(event_id, user_id) VALUES (?,?)
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(e.Id, userId)
+	_, err = stmt.Exec(id, e.Id, userId)
 	if err != nil {
 		return err
 	}
@@ -131,7 +130,7 @@ INSERT INTO registrations(event_id, user_id) VALUES (?,?)
 	return nil
 }
 
-func (e Event) CancelRegistration(userId int64) error {
+func (e Event) CancelRegistration(userId string) error {
 	query := `
 DELETE FROM registrations WHERE event_id = ? AND user_id = ?
 `

@@ -9,7 +9,7 @@ import (
 
 const secretKey = "secretKey"
 
-func GenerateToken(email string, userId int64) (string, error) {
+func GenerateToken(email string, userId string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email":  email,
 		"userId": userId,
@@ -18,7 +18,7 @@ func GenerateToken(email string, userId int64) (string, error) {
 	return token.SignedString([]byte(secretKey))
 }
 
-func VerifyToken(tokenString string) (int64, error) {
+func VerifyToken(tokenString string) (string, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 	parsedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -29,24 +29,24 @@ func VerifyToken(tokenString string) (int64, error) {
 	})
 
 	if err != nil {
-		return 0, errors.New("could not parse the access token: " + err.Error())
+		return "", errors.New("could not parse the access token: " + err.Error())
 	}
 
 	if !parsedToken.Valid {
-		return 0, errors.New("the access token provided is not valid")
+		return "", errors.New("the access token provided is not valid")
 	}
 
 	// Extract claims
 	_, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, errors.New("invalid token claims")
+		return "", errors.New("invalid token claims")
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 
-	userId := int64(claims["userId"].(float64))
+	userId := claims["userId"].(string)
 	if !ok {
-		return 0, errors.New("userId claim is missing or invalid")
+		return "", errors.New("userId claim is missing or invalid")
 	}
 
 	return userId, nil

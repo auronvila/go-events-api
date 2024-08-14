@@ -3,17 +3,13 @@ package services
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-events-planning-backend/models"
+	"github.com/golang-events-planning-backend/utils"
 	"net/http"
-	"strconv"
 )
 
 func RegisterUserToEvent(context *gin.Context) {
-	userId := context.GetInt64("userId")
-	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"errMsg": "could not parse the eventId"})
-		return
-	}
+	userId := context.GetString("userId")
+	eventId := context.Param("id")
 
 	event, err := models.GetEventById(eventId)
 	if err != nil {
@@ -21,9 +17,10 @@ func RegisterUserToEvent(context *gin.Context) {
 		return
 	}
 
-	err = event.Register(userId)
+	id := utils.GenerateUUID()
+	err = event.Register(userId, id)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": err})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -31,16 +28,12 @@ func RegisterUserToEvent(context *gin.Context) {
 }
 
 func CancelRegistration(context *gin.Context) {
-	userId := context.GetInt64("userId")
-	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"errMsg": "could not parse the eventId"})
-		return
-	}
+	userId := context.GetString("userId")
+	eventId := context.Param("id")
 
 	var event models.Event
 	event.Id = eventId
-	err = event.CancelRegistration(userId)
+	err := event.CancelRegistration(userId)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"errMsg": err.Error()})
 		return

@@ -9,20 +9,20 @@ import (
 )
 
 type User struct {
-	Id       int64  `json:"id"`
+	Id       string `json:"id"`
 	Email    string `binding:"required" json:"email"`
 	Password string `binding:"required" json:"password"`
 }
 
 type UserResponse struct {
-	Id          int64  `json:"id"`
+	Id          string `json:"id"`
 	Email       string `json:"email"`
 	AccessToken string `json:"access_token"`
 }
 
 func (user User) Save() error {
 	query := `
-INSERT INTO users (email,password) VALUES (?,?)
+INSERT INTO users (id,email,password) VALUES (?,?,?)
 `
 	statement, err := db.DB.Prepare(query)
 
@@ -36,14 +36,12 @@ INSERT INTO users (email,password) VALUES (?,?)
 		return err
 	}
 
-	result, err := statement.Exec(user.Email, hashedPassword)
+	_, err = statement.Exec(user.Id, user.Email, hashedPassword)
 
 	if err != nil {
 		return err
 	}
 
-	userId, err := result.LastInsertId()
-	user.Id = userId
 	return nil
 }
 

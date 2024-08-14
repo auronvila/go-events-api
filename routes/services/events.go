@@ -3,8 +3,8 @@ package services
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-events-planning-backend/models"
+	"github.com/golang-events-planning-backend/utils"
 	"net/http"
-	"strconv"
 )
 
 func GetEvents(context *gin.Context) {
@@ -17,11 +17,7 @@ func GetEvents(context *gin.Context) {
 }
 
 func GetEventById(context *gin.Context) {
-	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "could not parse the eventId"})
-		return
-	}
+	eventId := context.Param("id")
 
 	event, err := models.GetEventById(eventId)
 	if err != nil {
@@ -41,23 +37,20 @@ func CreateEvent(context *gin.Context) {
 		return
 	}
 
-	userId := context.GetInt64("userId")
+	event.Id = utils.GenerateUUID()
+	userId := context.GetString("userId")
 	event.UserId = userId
 	err = event.Save()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "could not save the event to the database"})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	context.JSON(http.StatusOK, event)
 }
 
 func UpdateEvent(context *gin.Context) {
-	userId := context.GetInt64("userId")
-	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "could not parse the eventId"})
-		return
-	}
+	userId := context.GetString("userId")
+	eventId := context.Param("id")
 
 	event, err := models.GetEventById(eventId)
 	if err != nil {
@@ -88,12 +81,8 @@ func UpdateEvent(context *gin.Context) {
 }
 
 func DeleteEvent(context *gin.Context) {
-	userId := context.GetInt64("userId")
-	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "could not parse the eventId"})
-		return
-	}
+	userId := context.GetString("userId")
+	eventId := context.Param("id")
 
 	event, err := models.GetEventById(eventId)
 	if err != nil {

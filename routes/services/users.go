@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-events-planning-backend/models"
 	"github.com/golang-events-planning-backend/utils"
@@ -18,16 +17,16 @@ func SignUp(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	user.Id = utils.GenerateUUID()
 
 	err = user.Save()
 
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"message": "user with this email already exists"})
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	fmt.Println(user)
-	context.JSON(http.StatusOK, gin.H{"message": "user created successfully"})
+	context.JSON(http.StatusOK, user)
 }
 
 func GetaAllUsers(context *gin.Context) {
