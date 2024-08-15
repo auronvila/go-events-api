@@ -32,7 +32,8 @@ func SignUp(context *gin.Context) {
 func GetaAllUsers(context *gin.Context) {
 	users, err := models.GetAlUsers()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "error in fetching the users from the database"})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
 	}
 
 	context.JSON(http.StatusOK, users)

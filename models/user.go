@@ -52,10 +52,10 @@ INSERT INTO users (id,email,password) VALUES (?,?,?)
 	return nil
 }
 
-func GetAlUsers() ([]User, error) {
-	var users []User
+func GetAlUsers() ([]UserResponse, error) {
+	var users []UserResponse
 	query := `
-SELECT * FROM users`
+SELECT id,email FROM users`
 	rows, err := db.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -63,8 +63,8 @@ SELECT * FROM users`
 	defer rows.Close()
 
 	for rows.Next() {
-		var user User
-		err = rows.Scan(&user.Id, &user.Email, &user.Password)
+		var user UserResponse
+		err = rows.Scan(&user.Id, &user.Email)
 		if err != nil {
 			return nil, err
 		}
