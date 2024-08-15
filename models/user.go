@@ -1,7 +1,9 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/golang-events-planning-backend/db"
 	"github.com/golang-events-planning-backend/utils"
 	"log"
@@ -14,10 +16,15 @@ type User struct {
 	Password string `binding:"required" json:"password"`
 }
 
-type UserResponse struct {
+type UserSignInResponse struct {
 	Id          string `json:"id"`
 	Email       string `json:"email"`
 	AccessToken string `json:"access_token"`
+}
+
+type UserResponse struct {
+	Id    string `json:"id"`
+	Email string `json:"email"`
 }
 
 func (user User) Save() error {
@@ -97,8 +104,34 @@ func (user *User) ValidateCredentials() error {
 	return nil
 }
 
-func (user User) CreateUserResponse(token string) UserResponse {
+func (user UserResponse) GetSingleUser() (UserResponse, error) {
+	query := `
+    SELECT id, email 
+    FROM users 
+    WHERE id = ?
+    `
+	stmt, err := db.DB.Prepare(query)
+	if err != nil {
+		return UserResponse{}, fmt.Errorf("error preparing query: %v", err)
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(user.Id).Scan(&user.Id, &user.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return UserResponse{}, fmt.Errorf("no user found with id: %v", user.Id)
+		}
+		return UserResponse{}, fmt.Errorf("error executing query: %v", err)
+	}
+
 	return UserResponse{
+		Id:    user.Id,
+		Email: user.Email,
+	}, nil
+}
+
+func (user User) CreateUserResponse(token string) UserSignInResponse {
+	return UserSignInResponse{
 		Id:          user.Id,
 		Email:       user.Email,
 		AccessToken: token,

@@ -65,3 +65,20 @@ func Login(context *gin.Context) {
 
 	context.JSON(http.StatusOK, user.CreateUserResponse(token))
 }
+
+func GetSingleUser(context *gin.Context) {
+	userId := context.GetString("userId")
+
+	var user models.UserResponse
+
+	user.Id = userId
+	user, err := user.GetSingleUser()
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	context.JSON(http.StatusOK, user)
+
+}
