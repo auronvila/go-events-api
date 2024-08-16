@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-events-planning-backend/models"
 	"github.com/golang-events-planning-backend/utils"
@@ -105,6 +106,19 @@ func DeleteEvent(context *gin.Context) {
 
 func GetUserAssignedEvents(context *gin.Context) {
 	res, err := models.GetUserAssignedRegistrations()
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	context.JSON(http.StatusOK, res)
+}
+
+func GetSpecificEventUserAssignee(context *gin.Context) {
+	eventId := context.Param("id")
+
+	fmt.Println(eventId)
+	res, err := models.GetSpecificEventUserAssignee(eventId)
+
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return

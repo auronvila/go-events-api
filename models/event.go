@@ -142,7 +142,7 @@ INSERT INTO user_events(id,event_id, user_id) VALUES (?,?,?)
 
 func (e Event) CancelRegistration(userId string) error {
 	query := `
-DELETE FROM registrations WHERE event_id = ? AND user_id = ?
+DELETE FROM user_events WHERE event_id = ? AND user_id = ?
 `
 
 	stmt, err := db.DB.Prepare(query)
@@ -208,4 +208,42 @@ JOIN
 	}
 
 	return results, nil
+}
+
+func GetSpecificEventUserAssignee(eventId string) ([]UserResponse, error) {
+	query := ` 
+SELECT 
+    u.id AS user_id, 
+    u.email
+FROM 
+    user_events ue
+JOIN 
+    users u ON ue.user_id = u.id
+WHERE 
+    ue.event_id = ?;
+`
+
+	rows, err := db.DB.Query(query, eventId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []UserResponse
+
+	for rows.Next() {
+		var user UserResponse
+		err := rows.Scan(&user.Id, &user.Email)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	// Check for errors after the iteration is done
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

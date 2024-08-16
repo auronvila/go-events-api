@@ -18,4 +18,5 @@ func RegisterEventRoutes(server *gin.Engine) {
 	authenticated.GET("/event/:id", services.GetEventById)
 
 	authenticated.GET("/events/userAssignedEvents", services.GetUserAssignedEvents)
+	authenticated.GET("/event/:id/specificEventAssignedUser", services.GetSpecificEventUserAssignee)
 }
