@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS events (
                                       FOREIGN KEY(userId) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS registrations (
+CREATE TABLE IF NOT EXISTS user_events (
                                              id TEXT PRIMARY KEY NOT NULL,
                                              event_id TEXT,
                                              user_id TEXT,

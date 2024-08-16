@@ -16,4 +16,6 @@ func RegisterEventRoutes(server *gin.Engine) {
 	authenticated.DELETE("/event/:id", services.DeleteEvent)
 	authenticated.GET("/events", services.GetEvents)
 	authenticated.GET("/event/:id", services.GetEventById)
+
+	authenticated.GET("/events/userAssignedEvents", services.GetUserAssignedEvents)
 }

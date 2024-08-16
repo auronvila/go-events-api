@@ -17,6 +17,16 @@ type Event struct {
 	UserId      string
 }
 
+type UserAssignedEvents struct {
+	UserID           string `json:"userId"`
+	UserEmail        string `json:"userEmail"`
+	EventID          string `json:"eventId"`
+	EventName        string `json:"eventName"`
+	EventLocation    string `json:"eventLocation"`
+	EventDescription string `json:"eventDescription"`
+	EventDate        string `json:"eventDate"`
+}
+
 func (receiver Event) Save() error {
 	query := `
 INSERT INTO events(id,name,description,location,dateTime,userId) 
@@ -113,7 +123,7 @@ DELETE FROM events WHERE id = ?
 
 func (e Event) Register(userId string, id string) error {
 	query := `
-INSERT INTO registrations(id,event_id, user_id) VALUES (?,?,?)
+INSERT INTO user_events(id,event_id, user_id) VALUES (?,?,?)
 `
 	stmt, err := db.DB.Prepare(query)
 	if err != nil {
@@ -156,4 +166,46 @@ DELETE FROM registrations WHERE event_id = ? AND user_id = ?
 	}
 
 	return nil
+}
+
+func GetUserAssignedRegistrations() ([]UserAssignedEvents, error) {
+	query := ` 
+SELECT 
+    u.id AS user_id, 
+    u.email, 
+    e.id AS event_id, 
+    e.name, 
+    e.location,
+    e.description,
+    e.dateTime
+FROM 
+    user_events ue
+JOIN 
+    users u ON ue.user_id = u.id
+JOIN 
+    events e ON ue.event_id = e.id;
+`
+
+	rows, err := db.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []UserAssignedEvents
+
+	for rows.Next() {
+		var ue UserAssignedEvents
+		err := rows.Scan(&ue.UserID, &ue.UserEmail, &ue.EventID, &ue.EventName, &ue.EventLocation, &ue.EventDescription, &ue.EventDate)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, ue)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }

@@ -102,3 +102,12 @@ func DeleteEvent(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"message": "event deleted successfully"})
 }
+
+func GetUserAssignedEvents(context *gin.Context) {
+	res, err := models.GetUserAssignedRegistrations()
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	context.JSON(http.StatusOK, res)
+}
