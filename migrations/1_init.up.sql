@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS user_events (
                                              event_id TEXT,
                                              user_id TEXT,
                                              FOREIGN KEY(event_id) REFERENCES events(id),
-                                                FOREIGN KEY(user_id) REFERENCES users(id)
+                                            FOREIGN KEY(user_id) REFERENCES users(id)
 );
