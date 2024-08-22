@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
                                      id TEXT PRIMARY KEY NOT NULL,
                                      email TEXT NOT NULL UNIQUE,
-                                     password TEXT NOT NULL
+                                     password TEXT NOT NULL,
+                                     sex TINYINT NOT NULL DEFAULT 0,
+                                     username TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS events (

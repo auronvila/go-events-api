@@ -12,10 +12,8 @@ func main() {
 	migrate := flag.Bool("migrate", false, "Run database migrations")
 	flag.Parse()
 
-	// Initialize the database
 	db.InitDb()
 
-	// Check if the migrate flag was provided
 	if *migrate {
 		db.RunMigrations()
 		os.Exit(0)
@@ -24,6 +22,7 @@ func main() {
 	server := gin.Default()
 	routes.RegisterEventRoutes(server)
 	routes.RegisterUserRoutes(server)
+	routes.RegisterCommentRoutes(server)
 
 	server.Run(":3100")
 }

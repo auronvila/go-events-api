@@ -42,7 +42,7 @@ func GetaAllUsers(context *gin.Context) {
 func Login(context *gin.Context) {
 	start := time.Now()
 
-	var user models.User
+	var user models.UserLogin
 	if err := context.ShouldBindJSON(&user); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return

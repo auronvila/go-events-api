@@ -14,12 +14,22 @@ type User struct {
 	Id       string `json:"id"`
 	Email    string `binding:"required" json:"email"`
 	Password string `binding:"required" json:"password"`
+	UserName string `binding:"required" json:"userName"`
+	Sex      int    `binding:"required" json:"sex"`
+}
+
+type UserLogin struct {
+	Id       string `json:"id"`
+	Email    string `binding:"required" json:"email"`
+	Password string `binding:"required" json:"password"`
 }
 
 type UserSignInResponse struct {
 	Id          string `json:"id"`
 	Email       string `json:"email"`
 	AccessToken string `json:"access_token"`
+	UserName    string `json:"userName"`
+	Sex         int    ` json:"sex"`
 }
 
 type UserResponse struct {
@@ -29,7 +39,7 @@ type UserResponse struct {
 
 func (user User) Save() error {
 	query := `
-INSERT INTO users (id,email,password) VALUES (?,?,?)
+INSERT INTO users (id,email,password,username,sex) VALUES (?,?,?,?,?)
 `
 	statement, err := db.DB.Prepare(query)
 
@@ -43,7 +53,7 @@ INSERT INTO users (id,email,password) VALUES (?,?,?)
 		return err
 	}
 
-	_, err = statement.Exec(user.Id, user.Email, hashedPassword)
+	_, err = statement.Exec(user.Id, user.Email, hashedPassword, user.UserName, user.Sex)
 
 	if err != nil {
 		return err
@@ -74,7 +84,7 @@ SELECT id,email FROM users`
 	return users, nil
 }
 
-func (user *User) ValidateCredentials() error {
+func (user *UserLogin) ValidateCredentials() error {
 	// Start timing the database query
 	start := time.Now()
 
@@ -130,7 +140,7 @@ func (user UserResponse) GetSingleUser() (UserResponse, error) {
 	}, nil
 }
 
-func (user User) CreateUserResponse(token string) UserSignInResponse {
+func (user UserLogin) CreateUserResponse(token string) UserSignInResponse {
 	return UserSignInResponse{
 		Id:          user.Id,
 		Email:       user.Email,
