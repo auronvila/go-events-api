@@ -12,4 +12,5 @@ func RegisterCommentRoutes(server *gin.Engine) {
 
 	authenticated.POST("/comments/:id", services.CreateComment)
 	authenticated.GET("/comments", services.GetComments)
+	authenticated.GET("/comments/:id", services.GetCommentById)
 }

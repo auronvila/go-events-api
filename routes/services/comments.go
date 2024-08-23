@@ -46,3 +46,14 @@ func GetComments(context *gin.Context) {
 
 	context.JSON(http.StatusOK, data)
 }
+
+func GetCommentById(context *gin.Context) {
+	eventId := context.Param("id")
+	comments, err := models.GetAllCommentsByEventId(eventId)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"errMsg": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, comments)
+}
